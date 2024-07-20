@@ -15,11 +15,18 @@ struct Generator {
     int value;
     bool is_ready = false;
 
-    std::suspend_always initial_suspend() { return {}; };
+    std::suspend_always initial_suspend() {
+      printf("initial_suspend\n");
+      return {};
+    };
 
-    std::suspend_always final_suspend() noexcept { return {}; }
+    std::suspend_always final_suspend() noexcept {
+      printf("final_suspend\n");
+      return {};
+    }
 
     std::suspend_always yield_value(int value) {
+      printf("yield_value %d\n", value);
       this->value = value;
       is_ready = true;
       return {};
@@ -39,6 +46,7 @@ struct Generator {
   std::coroutine_handle<promise_type> handle;
 
   bool has_next() {
+    printf("has_next start is_done %d is_ready %d\n", handle.done(), handle.promise().is_ready);
     if (handle.done()) {
       return false;
     }
@@ -47,6 +55,7 @@ struct Generator {
       handle.resume();
     }
 
+    printf("has_next resumed is_done %d is_ready %d\n", handle.done(), handle.promise().is_ready);
     if (handle.done()) {
       return false;
     } else {
@@ -119,7 +128,7 @@ class Fibonacci {
 int main() {
   auto generator = fibonacci();
   auto fib = Fibonacci();
-  for (int i = 0; i < 10; ++i) {
+  for (int i = 0; i < 5; ++i) {
     if (generator.has_next()) {
       std::cout << generator.next() << " " << fib.next() << std::endl;
     } else {
